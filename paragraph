@@ -1,0 +1,79 @@
+#! /usr/bin/python3
+from bs4 import BeautifulSoup
+import sys
+import requests as re
+
+
+class LawPrint:
+    """
+    Klasse, mit der Gesetzestexte von gesetze-im-internet.de  geladen und ausgegeben werden können
+    """
+    Books = ["bgb", "hgb", "agg", "stgb", "gvg", "vwgo", "zpo", "bbaug", "gewo", "vwvfg" ]
+
+
+    def __init__(self, book, paragraph):
+        """KONSTRUKTOR
+        book : str - Gesetzbuch - Muss in LawPrint.Books vorkommen
+        paragraph - str - Muss Zahlenwert in Stringform sein
+        """
+        if not isinstance(book, str):
+            raise TypeError("Book is no String!")
+        if not book.lower() in LawPrint.Books:
+            raise ValueError(f"{book} not in {LawPrint.Books}")
+        self.book = book
+
+        if not isinstance(paragraph, str):
+            raise TypeError("Paragraph is no String!")
+        """
+        if not paragraph.isdigit():
+            raise ValueError("Paragraph muss Zahlenwert sein")
+        if int(paragraph) < 1:
+            raise ValueError("Paragraph muss mindestes Wert von 1 haben")
+       """
+        self.paragraph = paragraph
+        self.text = self.getText()
+
+    def __str__(self) -> str:
+        return self.text
+
+    def getText(self) -> str:
+        """
+        Ermittelt den Gesetzestext von der Internetseite gesetze-im-internet.de
+        """
+        html = re.get(f"https://www.gesetze-im-internet.de/{self.book.lower()}/__{self.paragraph}.html")
+        status = html.status_code
+        if status != 200:
+            return f"ERROR - § {self.paragraph} {self.book.upper()} konnte nicht gefunden werden!"
+        doc = BeautifulSoup(html.text, 'html.parser')
+        header = doc.find_all('h1')[0].text
+        out = f'\033[1m\033[95m{header.split("§")[0]}\n§{header.split("§")[1]}\033[0m\n'
+        absaetze = doc.find_all("div", class_="jurAbsatz")
+        for absatz in absaetze:
+
+            # Fall für einzelne Absätze ohne Auflistungen
+            if len(absatz) < 2:
+                out += f"\n{absatz.text}\n"
+
+            # Fall für Absätze mit Listen und Untergliederungen
+            else:
+                # Zusätzlicher Absatz für Absatzanfang
+                out += "\n"
+                for string in absatz._all_strings():
+                    # Aufzählungen fangen mit Nummerierungen an 1.
+                    # Aufzählungen können auch mit a) oder aa) anfangen 
+                    # Haben i.d.R.  len() < 4
+                    if len(string) < 4:
+                        out += f"{string} "
+                    else:
+                        out += f"{string}\n\n" 
+        return out
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        raise ValueError("Benötigt Eingabeparameter Book und Paragraph")
+    book = sys.argv[1]
+    paragraph = sys.argv[2]
+    
+    para = LawPrint(book, paragraph)
+    print(para)    
