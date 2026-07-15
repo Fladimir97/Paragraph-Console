@@ -47,6 +47,24 @@ Bürgerliches Gesetzbuch (BGB)
 (2) Der Käufer ist verpflichtet, dem Verkäufer den vereinbarten Kaufpreis zu zahlen und die gekaufte Sache abzunehmen.
 ```
 
+Das Tool lässt sich auch hervorragend in Kombination mit `grep` und [cowsay](https://github.com/cowsay-org/cowsay) nutzen:
+
+```raw
+> paragraph bgb 276 | grep "Fahrlässig " | cowsay -s
+
+ ______________________________________
+/ (2) Fahrlässig handelt, wer die im   \
+| Verkehr erforderliche Sorgfalt außer |
+\ Acht lässt.                          /
+ --------------------------------------
+        \   ^__^
+         \  (**)\_______
+            (__)\       )\/\
+             U  ||----w |
+                ||     ||
+```
+
+
 
 # Unterstützte Gesetze
 
